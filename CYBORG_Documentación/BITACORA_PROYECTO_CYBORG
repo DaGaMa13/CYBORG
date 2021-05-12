@@ -1,0 +1,37 @@
+%******************************************************
+*	SIGNOS INGENIERÍA -- JOVENTOS WORKSHOP
+*	CYBORG
+*	DANIEL GARCÉS MARÍN -- DaGaMa13
+*******************************************************%%
+
+
+>>>>>>>> BITÁCORA DEL PROYECTO <<<<<<<<<<<<<<<<
+
+
++> 8 de Enero 2021
+
+	-Creación del repositorio que corresponde al proyecto:
+		_https://github.com/G013/CYBORG
+
+	-Creación de los ficheros para clasificar el contenido de los archivos
+
+	-Creación e la documentación en LATEX para la descripción del proyecto.
+
+--------------------------------------------------------------
+
++> 12 de Enero
+
+	-Redacción de la introducción del proyecto sobre el documento principal del proyecto.
+		_# Falta la creación de los planos del robot
+
++> 2 de Febrero 
+
+	-[Inicio de restauración del robot a nivel de hardware]
+
+	-Se removieron los electrónicos para limpieza y ver que materiales pueden rescatarse y reutilizarse
+	-Se utilizarán los componentes de las antenas y sensores en general
+	-Se reemplazo el led de las antenas a led RGB, se cambio el conector para utilizar sobre una tarjeta perforada
+	-Se reeemplazo el conectro del fotoresistor
+	-Se reemplazo el puente H a un modelo más reciente, además de reutilziar los conectores de la placa original con el fin de no reemplazar los conectores de los motores
+	-Se planea reutilizar los conectores del switch de alimentación así como retirar los holders de las baterías
+	- Se comenzó a armar la placa del circuito
