@@ -1,0 +1,2 @@
+HARDWARE/bluetooth:HARDWARE/motors:HARDWARE/sensors:HARDWARE/warning:yoltic:yoltic_begin
+-DCATKIN_DEVEL_PREFIX=/home/ubuntu/CYBORG/CYBORG_SO/yoltic_catkin_ws/devel -DCMAKE_INSTALL_PREFIX=/home/ubuntu/CYBORG/CYBORG_SO/yoltic_catkin_ws/install -G Unix Makefiles

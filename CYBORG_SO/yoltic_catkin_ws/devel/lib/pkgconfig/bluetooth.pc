@@ -1,0 +1,8 @@
+prefix=/home/ubuntu/CYBORG/CYBORG_SO/yoltic_catkin_ws/devel
+
+Name: bluetooth
+Description: Description of bluetooth
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 
