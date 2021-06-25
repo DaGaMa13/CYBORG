@@ -1,63 +1,89 @@
 /***************************************************
  *  SIGNOS INGENIERÍA YOUNGSTERS WORKSHOP
  *  
- *  PROYECTO CYBORG YOTILC BLUETOOTH VERSION
+ *  PROYECTO CYBORG YOTILC TEST VERSION
  * 
- * Programa correspondiente al uso de un módulo bluetooth 
- * para el control de movimientos de YOLTIC por medio de
- * una aplicación móvil.
+ * Programa correspondiente a la prueba de los componentes
+ * integrados en el robot Cyborg Yoltic siendo administradso
+ * únicamente por la unidad de procesamiento Arduino.
  * 
- *  Fecha: Marzo 2021
+ *  Fecha: Junio 2021
  ***************************************************/
 
 //  <__DaGaMa13__>
 //****************************************************************
 
-//Declaración de las bibliotecas
-#include <SoftwareSerial.h> //Librería Software seria, incluye modulo bluetooth
-
-//Declaración del objeto Bluetooth
-SoftwareSerial BT(0,1); //Pines Rx y Tx respectivamente del módulo bluetooth
-/*    a         on::f  ser:g  13V:h 10V:i 9V:j 6V:k 5V:l
- *  b c d                       R:m  n     o   p    q
- *    e 
+/***********************
+ *  >>>CONEXIONES
+ *  
+ * < Declaración pines de entrada >
+ * A0 :: Entrada analógica del Fotoresistor Derecho
+ * A1 :: Entrada analógica del Fotoresistor Izquierdo
+ * A2 :: Entrada analógica del Sensor de temperatura
+ * A3 :: Entrada analógica del Divisor de voltaje
+ * A4 :: Entrada digital del PushButton de <modo>
+ *  
+ *  <Declaración pines de salida >
+ * D2 :: RGB RED
+ * ~D3 :: MOTOR_DER0
+ * D4 :: RGB GREEN
+ * ~D5 :: MOTOR_DER1
+ * -D6 :: BUZZER
+ * D7 :: RGB BLUE
+ * 
+ * ~D9 :: MOTOR IZQ 0
+ * ~D10 :: MOTOR IZQ 1
+ * D13 :: LED STATUS
  */
 
-//Declaración de pines de salida del Arduino
+// << Bibliotecas >>
+//---------------------------------------------------------------
 
-int ledRED = 2; //Salida digital LED RGB RED
-int ledGREEN = 4; //Salida digital LED RGB GREEN
-int ledBLUE =7; //Salida digital LED RGB BLUE
+// << Declaración de lo spines de salida >>
+
+int ledRED = 2; //LED RGB RED
+int ledGREEN = 4; //LED RGB GREEN
+int ledBLUE = 7; //LED RGB BLUE
+
+
+//int ultraSDer_T = 2; //Sensor Ultrasónico Derecho Tx
+//int ultraSDer_R = 3; //Sensor Ultrasónico Derecho Rx
+//int ultraSIzq_T = 4; //Sensor Ultrasónico Izquierdo Tx
+//int ultraSIzq_R = 5; //Sensor Ultrasónico Izquierdo Rx
 
 int bzzr = 6; // Salida digital Buzzer de alerta
 
-int motorDer_0 = 3; //Salida analógica 0 de dirección del Motor Derecho
-int motorDer_1 = 5; //Salida analógica 1 de dirección del Motor Derecho
-int motorIzq_0 = 10; //Salida analógica 0 de dirección del Motor Izquierdo
-int motorIzq_1 = 11; //Salida analógica 1 de dirección del Motor Izquierdo
+int motorDer_0 = 3; //Salida digital 0 de dirección del Motor Derecho
+int motorDer_1 = 5; //Salida digital 1 de dirección del Motor Derecho
+int motorIzq_0 = 9; //Salida digital 0 de dirección del Motor Izquierdo
+int motorIzq_1 = 10; //Salida digital 1 de dirección del Motor Izquierdo
 
 int ledS = 13; //Salida digital para el LED de estatus del robot (compartir con el RGB)
+//-----------------------------------------------------------------------------------------
 
 // << Variables >>
 
 int i,j,k; //contadores generales
 
-//VARIABLES DE SENSORES
 float tempt = 0; // Temperatura del robot registrada
 float voltj = 0; //Voltaje de la batería de aimentación del robot
 float lumen[2] = {0,0}; //Arreglo del la cantidad luminosa captada [FotoR Der, FotoR Izq]
 float dist[2] = {0,0}; //Arreglo de la distancia obtenida [UltraS Der, UltraS Izq]
 
+int modo = 0; //Modo en el que se encuentra el robot habilidado (PushButton)
+              // 0::ALLTO
+              // 1::FRENTE, 2::DERECHA, 3::ATRÁS  4::IZQUIERDA
+
 //VARIABLES DE CONTROL Y STATUS              
-int motorVel = 70; //Velocidad de los motores, {fijada por temas de funcionalidad}             
+int motorVel = 80; //Velocidad de los motores, {fijada por temas de funcionalidad}             
 int motorVelMax = 255; //Velocidad de los motores máxima
 int temptMax = 40; //Temperatura máxima de operación del robot en °C :: 30°C
 int voltjMin = 3; //Voltaje mínimo nomical de fuente de alimentación :: 3V 
 
-//VARIABLE BLUETOOTH
-char bt;
+//________________________________________________________________________________________
+//****************************************************************************************
 
-//****************************************************************************
+//FUNCIONES CONTROL DE HARDWARE
 
 //Función de toma de valores de Status del robot
 bool tomaStatus(){
@@ -80,15 +106,21 @@ bool tomaStatus(){
 
     else{ //Temperatura ambiental peligrosa
     precaucion = true; 
-    digitalWrite(bzzr, HIGH);
-    digitalWrite(ledS,HIGH);}
+    Serial.println("[ALERTA]:: TEMPERATURA ALTA!!!!!");
+    ledRGB(1);
+    analogWrite(bzzr, 120);
+    digitalWrite(ledS,HIGH);
+    delay(10);}
     
     }//Voltaje Nominal OK
 
   else { //ALERTA VOLTAJE NOMINAL BAJO
     precaucion = true;
-    digitalWrite(bzzr, HIGH);
-    digitalWrite(ledS,HIGH);} 
+    Serial.println("[ALERTA]:: NIVEL DE BATERÍA BAJO!!!!!");
+    ledRGB(1);
+    analogWrite(bzzr, 120);
+    digitalWrite(ledS,HIGH);
+    delay(10);} 
 
   return precaucion;  
 }//Fin de la función tomaStatus
@@ -118,6 +150,7 @@ void controlMotor(int direccion, int velocidad){
                            analogWrite(motorDer_1,velocidad);
                            analogWrite(motorIzq_0,velocidad);
                            digitalWrite(motorIzq_1,LOW);
+                           break;
                            break;
 
                     case 3: //ATRAS
@@ -174,13 +207,7 @@ void ledRGB(int led){
                     digitalWrite(ledBLUE,HIGH);
                     break;
 
-              case 4: //OFF
-                    digitalWrite(ledRED,LOW);
-                    digitalWrite(ledGREEN,LOW);
-                    digitalWrite(ledBLUE,LOW);
-                    break;
-
-              case 5: //ALL
+              case 4:  //ALL
                     digitalWrite(ledRED,HIGH);
                     digitalWrite(ledGREEN,HIGH);
                     digitalWrite(ledBLUE,HIGH);
@@ -196,113 +223,99 @@ void ledRGB(int led){
   
 }//FIN LED RGB
 //_______________________________________________________________________
+//______________________________________________________________________________________
+//********************************************************************************
 
-//Función de toma de intensidad luminosa
-int tomaLumen(){
-
-  //Variables
-  int valorMaximo = 0; // 0::NONE, 1::FRENTE, 2::DERECHA, 3::IZQUIERDA
-  float error_diferencia = 0.3; // Porcentaje de diferencia entre ambos sensores 100% ~ 1023
-  int diferencia = 0; //Dato que colectara la diferencia en porcentaje
-
-  //Toma de datos
-  lumen[0] = analogRead(A0); //Valor Fotoresistor Derecho
-  lumen[1] = analogRead(A1); //Valor Fotoresistor Izquierdo
-
-  diferencia = abs( (lumen[0] - lumen[1]));
-
-   //Comparación datos 
-
-   if( lumen[0] == lumen[1]){ //Fuente de Luz FRENTE
-    valorMaximo = 1;   }
-
-   if(diferencia <= (1023*error_diferencia)){
-    valorMaximo = 1;   }
-
-   else if ( lumen[0] > lumen[1] ){ //Fuente de Luz DERECHA
-    valorMaximo = 2;   }
-
-   else if (lumen[0] < lumen[1] ){ //Fuente de Luz IZQUIERDA
-    valorMaximo = 4;   }
-
-
-   else if ( lumen[0] < 200 and lumen[1] < 200){ //Sin Fuente de Luz
-    valorMaximo = 0;   }
-
-    else{
-      valorMaximo = 0;    }
-
- return valorMaximo;   
-}// Fin de la función tomaLumen
-
-//*****************************************************************************
+//CONFIGURACIÓN DE LOS COMPONENTES Y LOS PINES DEL ARDUINO
 void setup() {
-  
-  BT.begin(9600); //Inicializando comunicación serial con el bluetooth
-  Serial.begin(9600); //Inicializando en puerto serial
+
+  Serial.begin(9600);
 
   //Pines de estado 
   pinMode(bzzr,OUTPUT);
   pinMode(ledS,OUTPUT);
 
-  //Pines de salida LED RGB
+  //>> LED RGB
   pinMode(ledRED,OUTPUT);
-  pinMode(ledGREEN,OUTPUT);
-  pinMode(ledBLUE,OUTPUT);
+  pinMode(ledGREEN,OUTPUT); 
+  pinMode(ledBLUE, OUTPUT);
 
-  //Pines de salida MOTORES
-  pinMode(motorDer_0,OUTPUT);//Salida analógica 0 de dirección del Motor Derecho
-  pinMode(motorDer_1,OUTPUT);//Salida analógica 1 de dirección del Motor Derecho
-  pinMode(motorIzq_0,OUTPUT); //Salida analógica 0 de dirección del Motor Izquierdo
-  pinMode(motorIzq_1,OUTPUT); //Salida analógica 1 de dirección del Motor Izquierdo
+  //>> Control Motores
+  pinMode(motorDer_0,OUTPUT);
+  pinMode(motorDer_1,OUTPUT);
+  pinMode(motorIzq_0,OUTPUT);
+  pinMode(motorIzq_1,OUTPUT);
 
-}
-//******************************************************************************
+}//FIN DE LA CONFIGURACIÓN
+//********************************************************************************
 
+//FUNCION MAIN PRINCIPAL
 void loop() {
+  
+    digitalWrite(bzzr, LOW);
+    digitalWrite(ledS,LOW);
 
-  if(BT.available()){ //Obtención de data con BT disponible
-    bt =BT.read();
-    Serial.write(bt);
-  }//Fin de obtención de data
+    if( !tomaStatus() ){ //Robot en Optimas Condiciones
 
-  switch(bt){ //Movimientos del robot
+      //Obteniedo la información de los sensores y publicandola
+      Serial.print("Lumen Der: ");
+      Serial.println(analogRead(A0));
+      Serial.print("Lumen Izq: ");
+      Serial.println(analogRead(A1));
 
-              case 'g': //STOP
-                       ledRGB(1);
-                       controlMotor(0,motorVel);
-                       break;
+      Serial.print("Temperatura: ");
+      Serial.println(tempt);
 
-              case 'a': //Adelante
-                       ledRGB(2);
-                       controlMotor(1,motorVel);
-                       break;
+      Serial.print("Voltaje: ");
+      Serial.println(voltj);
+      Serial.println("-----------------");
 
-              case 'd': //Derecha
-                       ledRGB(2);
-                       controlMotor(2,motorVel);
-                       break;
+      delay(500);
 
-              case 'e': //Atras
-                       ledRGB(1);
-                       controlMotor(3,motorVel);
-                       break;
+      if(digitalRead(A4)== HIGH){ //Control de la dirección del motor
+        
+        modo++;
+        if(modo >= 5){
+          modo=0;}          }
 
-              case 'b': //Izquierda
-                       ledRGB(2);
-                       controlMotor(4,motorVel);
-                       break;
+       delay(500);
 
-              case 'f': //Seguidor de luz
-                      ledRGB(3);
-                      controlMotor(tomaLumen(),motorVel);
-                      break;
+       switch(modo){//Control de la dirección del motor
 
-              default: //STOP
-                       ledRGB(1);
-                       controlMotor(0,motorVel);
-                       break;
-    
-  }//FIN SWITCH MOVIMIENTOS
+                    case 0:
+                            controlMotor(0,motorVel);
+                            ledRGB(1);
+                            break;
 
-}//FIN MAIN LOOP
+                    case 1:
+                            controlMotor(1,motorVel);
+                            ledRGB(2);
+                            break;
+
+                    case 2:
+                            controlMotor(2,motorVel);
+                            ledRGB(3);
+                            break;
+
+                    case 3:
+                            controlMotor(3,motorVel);
+                            ledRGB(2);
+                            break;
+
+                    case 4:
+                            controlMotor(4,motorVel);
+                            ledRGB(3);
+                            break;
+
+                    default:
+                            controlMotor(5,motorVel);
+                            ledRGB(0);
+                            break;
+        
+       }//Fin del switch de direcciónes del motor
+      delay(1500);
+    }//Robot en optimas condiciones
+
+    controlMotor(0,motorVel);
+    ledRGB(0);
+}//FIN FUNCION MAIN VOID
