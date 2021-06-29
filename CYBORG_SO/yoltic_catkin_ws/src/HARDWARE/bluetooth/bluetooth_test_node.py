@@ -10,13 +10,3 @@ while True:
 		print(dato)
 		
 
-'''******************************************************************************
-*   Garces Marin Daniel         
-*   [SIGNOS INGENIERÍA] [YOUNGSTERS WORKSHOP] ::
-*
-*   <HARDWARE> Nodo BLUETOTH_TEST 
-*   El objetivo del nodo es el de gestionar la interacción con el módulo bluetoth HC 05/06
-*       --  NODO ESPECFICAMENTE PARA PRUEBAS DE HARDWARE 
-*       
-*   Ultima version: 28 de Junio del 2021
-*****************************************************************************************
