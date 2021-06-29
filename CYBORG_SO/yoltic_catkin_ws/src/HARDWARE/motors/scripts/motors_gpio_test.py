@@ -180,4 +180,4 @@ if __name__ == '__main__':
 *       --  NODO ESPECFICAMENTE PARA PRUEBAS DE HARDWARE 
 *       
 *   Ultima version: 24 de Junio del 2021
-*
+*****************************************************************************************
